@@ -1,11 +1,20 @@
-//
 //  Components.swift
 //  PetEvolution
-//
-//  Created by Zihan Li on 1/25/26.
-//
 
 import SwiftUI
+
+// MARK: - Color Hex Initializer
+extension Color {
+    init(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let r = Double((int >> 16) & 0xFF) / 255
+        let g = Double((int >> 8) & 0xFF) / 255
+        let b = Double(int & 0xFF) / 255
+        self.init(red: r, green: g, blue: b)
+    }
+}
 
 // MARK: - Pet Image View (decodes base64 data URLs)
 struct PetImageView: View {
@@ -36,47 +45,121 @@ struct PetImageView: View {
     }
 }
 
-// MARK: - Loading View
-struct LoadingView: View {
+// MARK: - Paw Spinner (replaces ProgressView)
+struct PawSpinner: View {
+    @State private var scale: CGFloat = 0.8
+
     var body: some View {
-        VStack(spacing: 16) {
-            ProgressView()
-                .scaleEffect(1.5)
-            Text("Loading...")
-                .font(.headline)
-                .foregroundColor(.secondary)
-        }
+        Text("🐾")
+            .font(.system(size: 44))
+            .scaleEffect(scale)
+            .onAppear {
+                withAnimation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true)) {
+                    scale = 1.2
+                }
+            }
     }
 }
 
-// MARK: - Error View
+// MARK: - Error View (game card style)
 struct ErrorView: View {
     let message: String
     let retryAction: (() -> Void)?
 
     var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "exclamationmark.triangle")
-                .font(.largeTitle)
-                .foregroundColor(.red)
+        VStack(spacing: 14) {
+            Text("⚠️")
+                .font(.system(size: 32))
 
             Text(message)
-                .font(.body)
-                .foregroundColor(.secondary)
+                .font(.system(.body, design: .rounded).weight(.semibold))
+                .foregroundColor(.primary)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal)
+                .padding(.horizontal, 8)
 
             if let retry = retryAction {
                 Button(action: retry) {
-                    Text("Dismiss")
-                        .font(.headline)
+                    Text("Try Again")
+                        .font(.system(.subheadline, design: .rounded).bold())
                         .foregroundColor(.white)
-                        .padding(.horizontal, 32)
-                        .padding(.vertical, 12)
-                        .background(Color.blue)
-                        .cornerRadius(10)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 10)
+                        .background(Color(hex: "#FF6B6B"))
+                        .clipShape(Capsule())
+                        .overlay(Capsule().stroke(Color(hex: "#333333"), lineWidth: 2))
+                }
+                .buttonStyle(BounceButtonStyle())
+            }
+        }
+        .padding(20)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color(hex: "#FF6B6B"), lineWidth: 3)
+        )
+    }
+}
+
+// MARK: - Bounce Button Style
+struct BounceButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.5), value: configuration.isPressed)
+    }
+}
+
+// MARK: - Toolbar Chip Button Wrapper
+struct ToolbarChip: View {
+    let systemName: String
+
+    var body: some View {
+        Image(systemName: systemName)
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundColor(Color(hex: "#333333"))
+            .frame(width: 32, height: 32)
+            .background(Color(hex: "#f0f4ff"))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color(hex: "#333333"), lineWidth: 2)
+            )
+    }
+}
+
+// MARK: - Floating Stars Background
+struct FloatingStarsBackground: View {
+    private let count = 8
+    @State private var offsets: [CGFloat] = Array(repeating: 0, count: 8)
+
+    var body: some View {
+        GeometryReader { geo in
+            ZStack {
+                ForEach(0..<count, id: \.self) { i in
+                    Text("⭐")
+                        .font(.system(size: 14))
+                        .opacity(0.5)
+                        .position(
+                            x: (CGFloat(i) / CGFloat(count)) * geo.size.width + 24,
+                            y: geo.size.height * 0.75 + offsets[i]
+                        )
                 }
             }
         }
+        .onAppear {
+            for i in 0..<count {
+                let delay = Double(i) * 0.9
+                let duration = 7.0 + Double(i % 4) * 1.5
+                withAnimation(
+                    .easeInOut(duration: duration)
+                    .repeatForever(autoreverses: true)
+                    .delay(delay)
+                ) {
+                    offsets[i] = -UIScreen.main.bounds.height * 0.55
+                }
+            }
+        }
+        .allowsHitTesting(false)
     }
 }
