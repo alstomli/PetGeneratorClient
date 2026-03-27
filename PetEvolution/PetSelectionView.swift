@@ -304,15 +304,12 @@ private struct SummonButton: View {
     }
 
     private func shake() {
-        withAnimation(.default) { shakeOffset = 8 }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            withAnimation(.default) { shakeOffset = -8 }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                withAnimation(.default) { shakeOffset = 8 }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    withAnimation(.default) { shakeOffset = 0 }
-                }
-            }
+        shakeOffset = 8
+        withAnimation(.default.repeatCount(3, autoreverses: true)) {
+            shakeOffset = -8
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            shakeOffset = 0
         }
     }
 }
