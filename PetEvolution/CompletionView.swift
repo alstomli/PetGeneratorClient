@@ -216,7 +216,9 @@ private struct ConfettiView: View {
                     let t = CGFloat(timeline.date.timeIntervalSince(started))
                     for piece in pieces {
                         let rawY = piece.y0 + t * piece.speed
-                        let y = rawY.truncatingRemainder(dividingBy: size.height + 40)
+                        let totalHeight = size.height + 40
+                        let wrapped = rawY.truncatingRemainder(dividingBy: totalHeight)
+                        let y = wrapped < 0 ? wrapped + totalHeight : wrapped
                         context.fill(
                             Path(CGRect(x: piece.x, y: y, width: 10, height: 10)),
                             with: .color(piece.color)
@@ -225,17 +227,17 @@ private struct ConfettiView: View {
                 }
                 .frame(width: geo.size.width, height: geo.size.height)
             }
-        }
-        .onAppear {
-            started = .now
-            pieces = (0..<20).map { i in
-                Piece(
-                    id: i,
-                    x: CGFloat.random(in: 0...UIScreen.main.bounds.width),
-                    y0: CGFloat.random(in: -200...(-20)),
-                    speed: CGFloat.random(in: 60...120),
-                    color: colors[i % colors.count]
-                )
+            .onAppear {
+                started = .now
+                pieces = (0..<20).map { i in
+                    Piece(
+                        id: i,
+                        x: CGFloat.random(in: 0...geo.size.width),
+                        y0: CGFloat.random(in: -200...(-20)),
+                        speed: CGFloat.random(in: 60...120),
+                        color: colors[Int.random(in: 0..<colors.count)]
+                    )
+                }
             }
         }
         .ignoresSafeArea()
