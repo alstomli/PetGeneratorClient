@@ -2,7 +2,6 @@
 //  PetEvolution
 
 import SwiftUI
-import UIKit
 
 // MARK: - Color Hex Initializer
 extension Color {
@@ -93,7 +92,7 @@ struct ErrorView: View {
             }
         }
         .padding(20)
-        .background(Color.white)
+        .background(Color(.systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .overlay(
             RoundedRectangle(cornerRadius: 16)
@@ -147,20 +146,39 @@ struct FloatingStarsBackground: View {
                         )
                 }
             }
-        }
-        .onAppear {
-            for i in 0..<count {
-                let delay = Double(i) * 0.9
-                let duration = 7.0 + Double(i % 4) * 1.5
-                withAnimation(
-                    .easeInOut(duration: duration)
-                    .repeatForever(autoreverses: true)
-                    .delay(delay)
-                ) {
-                    offsets[i] = -UIScreen.main.bounds.height * 0.55
+            .onAppear {
+                offsets = Array(repeating: 0, count: count)
+                for i in 0..<count {
+                    let delay = Double(i) * 0.9
+                    let duration = 7.0 + Double(i % 4) * 1.5
+                    withAnimation(
+                        .easeInOut(duration: duration)
+                        .repeatForever(autoreverses: true)
+                        .delay(delay)
+                    ) {
+                        offsets[i] = -geo.size.height * 0.55
+                    }
                 }
             }
         }
         .allowsHitTesting(false)
+    }
+}
+
+// MARK: - Rarity Helper (shared across CompletionView, MergeView, PetHistoryView)
+struct RarityInfo {
+    let label: String
+    let emoji: String
+    let color: Color
+
+    static func from(augments: [Augment]) -> RarityInfo {
+        let total = augments.reduce(0) { $0 + ($1.weight ?? 0) }
+        switch total {
+        case 0:     return RarityInfo(label: "Common",    emoji: "⚪️", color: Color(hex: "#9E9E9E"))
+        case 1...2: return RarityInfo(label: "Uncommon",  emoji: "🟢", color: Color(hex: "#6BCB77"))
+        case 3...4: return RarityInfo(label: "Rare",      emoji: "🔵", color: Color(hex: "#4D96FF"))
+        case 5...6: return RarityInfo(label: "Legendary", emoji: "💜", color: Color(hex: "#9B59B6"))
+        default:    return RarityInfo(label: "Mythical",  emoji: "⭐", color: Color(hex: "#FFD93D"))
+        }
     }
 }
