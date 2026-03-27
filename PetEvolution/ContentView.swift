@@ -1,34 +1,27 @@
-//
 //  ContentView.swift
 //  PetEvolution
-//
-//  Created by Zihan Li on 1/25/26.
-//
 
 import SwiftUI
 
 struct ContentView: View {
     @StateObject private var viewModel = PetEvolutionViewModel()
+    @State private var showMerge = false
 
     var body: some View {
         NavigationView {
             ZStack {
-                // Background gradient
-                LinearGradient(
-                    gradient: Gradient(colors: [
-                        Color.purple.opacity(0.1),
-                        Color.blue.opacity(0.1)
-                    ]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
+                // Flat background
+                Color(hex: "#f0f4ff")
+                    .ignoresSafeArea()
+
+                // Floating stars layer
+                FloatingStarsBackground()
 
                 // Main content based on current stage
                 Group {
                     switch viewModel.currentStage {
                     case .configuration:
-                        PetConfigurationView(viewModel: viewModel)
+                        PetConfigurationView(viewModel: viewModel, onMergeTapped: { showMerge = true })
                     case .firstEvolution:
                         EvolutionView(viewModel: viewModel, isFinalEvolution: false)
                     case .finalEvolution:
@@ -43,18 +36,28 @@ struct ContentView: View {
                 ToolbarItem(placement: .navigationBarLeading) {
                     if viewModel.currentStage == .configuration {
                         NavigationLink(destination: PetHistoryView(viewModel: viewModel)) {
-                            Image(systemName: "clock")
+                            ToolbarChip(systemName: "clock")
                         }
                     }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     if viewModel.currentStage != .configuration && viewModel.currentStage != .complete {
                         Button(action: { viewModel.reset() }) {
-                            Image(systemName: "arrow.counterclockwise")
+                            ToolbarChip(systemName: "arrow.counterclockwise")
                         }
                     }
                 }
             }
+        }
+        .fullScreenCover(isPresented: $showMerge) {
+            MergeView(
+                onDismiss: { showMerge = false },
+                onMergeComplete: { mergedPet in
+                    showMerge = false
+                    viewModel.currentPet = mergedPet
+                    viewModel.currentStage = .firstEvolution
+                }
+            )
         }
         .task {
             await viewModel.checkHealth()
