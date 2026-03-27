@@ -220,6 +220,10 @@ struct EvolutionView: View {
                                 sparkleRotation = 360
                             }
                         }
+                        .onDisappear {
+                            sparkleRotation = 0
+                            sparkleScale = 0.8
+                        }
 
                     TimelineView(.periodic(from: .now, by: 0.5)) { ctx in
                         let dots = Int(ctx.date.timeIntervalSinceReferenceDate / 0.5) % 3 + 1

@@ -46,7 +46,7 @@ struct CompletionView: View {
 
                     // MARK: Pet Showcase Card
                     if let pet = viewModel.currentPet {
-                        let rarity = rarityInfo(for: pet)
+                        let rarity = RarityInfo.from(augments: pet.augments)
 
                         VStack(spacing: 14) {
                             PetImageView(imageUrl: pet.imageUrl)
@@ -147,16 +147,6 @@ struct CompletionView: View {
         }
     }
 
-    private func rarityInfo(for pet: Pet) -> (label: String, emoji: String, color: Color) {
-        let total = pet.augments.reduce(0) { $0 + ($1.weight ?? 0) }
-        switch total {
-        case 0:      return ("Common",    "⚪️", Color(hex: "#9E9E9E"))
-        case 1...2:  return ("Uncommon",  "🟢", Color(hex: "#6BCB77"))
-        case 3...4:  return ("Rare",      "🔵", Color(hex: "#4D96FF"))
-        case 5...6:  return ("Legendary", "💜", Color(hex: "#9B59B6"))
-        default:     return ("Mythical",  "⭐", Color(hex: "#FFD93D"))
-        }
-    }
 }
 
 // MARK: - Stat Box
